@@ -1,0 +1,24 @@
+{
+  "name": "react-native-gps-state",
+  "description": "React Native Listener for GPS status changes",
+  "version": "0.1",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neuberoliveira/react-native-gps-state.git"
+  },
+  "nativePackage": true,
+  "author": "Neuber Oliveira (neuberoliveira)",
+  "contributors": [],
+  "keywords": [
+    "react-native",
+    "react-native-gps-state",
+    "react",
+    "native",
+    "gps",
+    "state",
+	"status",
+	"location",
+	"geolocation"
+  ]
+}
