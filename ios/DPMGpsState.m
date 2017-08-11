@@ -27,7 +27,6 @@
 @interface DPMGpsState()
 	@property(nonatomic, assign) id<CLLocationManagerDelegate> delegate;
 	@property(nonatomic, strong) CLLocationManager *manager;
-	@property(nonatomic, strong) RCTResponseSenderBlock listener;
 	@property(nonatomic, strong) NSDictionary *constants;
 @end
 
@@ -52,16 +51,14 @@
 RCT_EXPORT_MODULE(GPSState);
 
 #pragma mark Exported Methods
-RCT_EXPORT_METHOD(addListener:(RCTResponseSenderBlock)listener){
+RCT_EXPORT_METHOD(startListen){
 	if(!self.manager.delegate){
 		self.manager.delegate = self;
 	}
-	self.listener = listener;
 }
 
-RCT_EXPORT_METHOD(removeListener){
+RCT_EXPORT_METHOD(stopListen){
 	self.manager.delegate = nil;
-	self.listener = nil;
 }
 
 RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)callback){
@@ -103,18 +100,22 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 	}
 }
 
+-(NSDictionary *)constantsToExport {
+	return self.constants;
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+	return @[@"OnStatusChange"];
+}
+
 
 #pragma mark Class Helpers 
 -(NSNumber*)getLocationStatus {
 	return [NSNumber numberWithInt:[CLLocationManager authorizationStatus]];
 }
 
--(NSDictionary *)constantsToExport {
-	return self.constants;
-}
 
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-	if(self.listener)
-		self.listener(@[[NSNumber numberWithInt:status]]);
+	[self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
 }
 @end
