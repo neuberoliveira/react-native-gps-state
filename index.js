@@ -5,13 +5,18 @@ const {GPSState} = NativeModules;
 
 const gpsStateEmitter = new NativeEventEmitter(GPSState);
 var subscription = null;
+var listener = null;
+
+subscription = gpsStateEmitter.addListener('OnStatusChange', (status)=>{
+	if(listener){
+		listener.apply(this, [status]);
+	}
+});
 
 GPSState.addListener = (callback)=>{
 	if(typeof callback == 'function'){
+		listener = callback;
 		GPSState.startListen();
-		subscription = gpsStateEmitter.addListener('OnStatusChange', ()=>{
-			alert('HAR HAR HAR!!!!');
-		});
 	}
 }
 
