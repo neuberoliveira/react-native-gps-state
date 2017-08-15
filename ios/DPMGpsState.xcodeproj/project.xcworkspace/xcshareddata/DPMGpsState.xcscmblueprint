@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "80D88769D8834CD76741454FDB3CC21AB18A470D",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "80D88769D8834CD76741454FDB3CC21AB18A470D" : 9223372036854775807,
+    "8ADB6C8F53AFC29E321BAC86ED41E7AF90A38220" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C275CA36-D2EE-4190-98A0-789FC55D3B2B",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "80D88769D8834CD76741454FDB3CC21AB18A470D" : "react-native-gps-state\/",
+    "8ADB6C8F53AFC29E321BAC86ED41E7AF90A38220" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "DPMGpsState",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ios\/DPMGpsState.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:neuberoliveira\/react-native-gps-state.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "80D88769D8834CD76741454FDB3CC21AB18A470D"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "bitbucket.org:douglas_soriano\/app-primeira-mesa.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "8ADB6C8F53AFC29E321BAC86ED41E7AF90A38220"
+    }
+  ]
+}
