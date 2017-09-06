@@ -50,7 +50,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	
 	private boolean isListen = false;
 	private int targetSdkVersion = -1;
-	private BroadcastReceiver mGpsSwitchStateReceiver;
+	private BroadcastReceiver mGpsSwitchStateReceiver = null;
 	private LocationManager locationManager;
 	
 	public GPSStateModule(ReactApplicationContext reactContext) {
@@ -85,36 +85,40 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	
 	
 	@ReactMethod
-	public void startListen() {
-		stopListen();
-		mGpsSwitchStateReceiver = listenGpsState();
-		getReactApplicationContext().registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
-		isListen = true;
+	public void _startListen() {
+		_stopListen();
+		try {
+			mGpsSwitchStateReceiver = new GPSProvideChangeReceiver();
+			getReactApplicationContext().registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+			isListen = true;
+		}catch(Exception ex){}
 	}
 	
 	@ReactMethod
-	public void stopListen() {
+	public void _stopListen() {
 		isListen = false;
-		//locationManager.removeGpsStatusListener(this);
-		if(mGpsSwitchStateReceiver!=null){
-			getReactApplicationContext().unregisterReceiver(mGpsSwitchStateReceiver);
-		}
+		try {
+			//locationManager.removeGpsStatusListener(this);
+			if (mGpsSwitchStateReceiver != null) {
+				getReactApplicationContext().unregisterReceiver(mGpsSwitchStateReceiver);
+				mGpsSwitchStateReceiver = null;
+			}
+		}catch(Exception ex){}
 	}
 	
 	@ReactMethod
-	public void getStatus(Promise promise) {
+	public void _getStatus(Promise promise) {
 		promise.resolve( getGpsState() );
 	}
 	
 	@ReactMethod
-	public void openSettings(){
+	public void _openSettings(){
 		Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 		getCurrentActivity().startActivityForResult(callGPSSettingIntent, 0);
 	}
 	
 	@ReactMethod
-	//Param type is just to conform with the IOS api
-	public void requestAuthorization(@Nullable int type){
+	public void _requestAuthorization(){
 		ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_AUTHORIZATION);
 	}
 	
@@ -142,19 +146,6 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		}
 		
 		return status;
-	}
-	
-	BroadcastReceiver listenGpsState(){
-		return new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				if (action.matches("android.location.PROVIDERS_CHANGED")) {
-					int status = getGpsState();
-					sendEvent(status);
-				}
-			}
-		};
 	}
 	
 	
@@ -213,6 +204,16 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		}
 	}
 	
-	
+	private final class GPSProvideChangeReceiver extends BroadcastReceiver {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (action.matches("android.location.PROVIDERS_CHANGED")) {
+				int status = getGpsState();
+				sendEvent(status);
+			}
+		}
+	}
 }
 
