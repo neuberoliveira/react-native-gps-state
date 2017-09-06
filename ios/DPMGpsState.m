@@ -51,21 +51,21 @@
 RCT_EXPORT_MODULE(GPSState);
 
 #pragma mark Exported Methods
-RCT_EXPORT_METHOD(startListen){
+RCT_EXPORT_METHOD(_startListen){
 	if(!self.manager.delegate){
 		self.manager.delegate = self;
 	}
 }
 
-RCT_EXPORT_METHOD(stopListen){
+RCT_EXPORT_METHOD(_stopListen){
 	self.manager.delegate = nil;
 }
 
-RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(_getStatus:(RCTResponseSenderBlock)callback){
 	callback(@[ [self getLocationStatus] ]);
 }
 
-RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_REMAP_METHOD(_getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
 	NSNumber *status = [self getLocationStatus];
 	if(status >= 0){
 		resolve(status);
@@ -77,7 +77,7 @@ RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolv
 	}
 }
 
-RCT_EXPORT_METHOD(openSettings){
+RCT_EXPORT_METHOD(_openSettings){
 	UIApplication *application = [UIApplication sharedApplication];
 	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
 	
@@ -88,7 +88,7 @@ RCT_EXPORT_METHOD(openSettings){
 	}
 }
 
-RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
+RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 	int type = [authType intValue];
 	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
 	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
