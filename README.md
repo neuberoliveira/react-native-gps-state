@@ -9,6 +9,47 @@ This lib will emitevent wheneaver the GPS status change, like when the permissio
    - OR `npm install --save react-native-gps-state`
 2. Link library to project
    - `react-native link react-native-gps-state`
+   
+If the link fails, do a manual setup:
+
+#### Android
+
+**android/settings.gradle**
+
+```gradle
+include ':react-native-gps-state'
+project(':react-native-gps-state').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gps-state/android')
+```
+
+**android/app/build.gradle**
+
+```gradle
+dependencies {
+   ...
+   compile project(':react-native-gps-state')
+}
+```
+
+**MainApplication.java**
+
+On top, where imports are:
+
+```java
+import br.com.dopaminamob.gpsstate.GPSStatePackage;
+```
+
+Add the `new GPSStatePackage()` class to your list of exported packages.
+
+```java
+@Override
+protected List<ReactPackage> getPackages() {
+    return Arrays.asList(
+            new MainReactPackage(),
+            new GPSStatePackage(),
+    );
+}
+```
+
 
 ### Usage 
 
