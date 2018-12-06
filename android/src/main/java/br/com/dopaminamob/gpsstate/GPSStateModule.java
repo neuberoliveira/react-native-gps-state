@@ -12,8 +12,10 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.PermissionChecker;
@@ -47,7 +49,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	private static final int REQUEST_CODE_AUTHORIZATION = 1;
 	
 	private static final String EVENT_STATUS_CHANGE = "OnStatusChange";
-	
+
 	private boolean isListen = false;
 	private int targetSdkVersion = -1;
 	private BroadcastReceiver mGpsSwitchStateReceiver = null;
@@ -112,8 +114,18 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	}
 	
 	@ReactMethod
-	public void _openSettings(){
-		Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+	public void _openSettings(boolean openDetails){
+		Intent callGPSSettingIntent = new Intent();
+		String packageName = getReactApplicationContext().getPackageName();
+		String intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+		if(openDetails && isMarshmallowOrAbove()){
+			intentAction = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+
+			Uri uri = Uri.fromParts("package", packageName, null);
+			callGPSSettingIntent.setData(uri);
+		}
+
+		callGPSSettingIntent.setAction(intentAction);
 		getCurrentActivity().startActivityForResult(callGPSSettingIntent, 0);
 	}
 	
@@ -129,7 +141,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 		
 		//TODO check permission to inform the correct status
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M) {
+		if(isMarshmallowOrAbove()) {
 			int permission = ActivityCompat.checkSelfPermission(getReactApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
 			boolean isGranted = permission == PackageManager.PERMISSION_GRANTED;
 			if(enabled) {
@@ -156,41 +168,11 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		
 		reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(EVENT_STATUS_CHANGE, params);
 	}
-	
-	/*
-	@Override
-	public void onLocationChanged(Location location) {}
-	
-	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		Toast.makeText(getReactApplicationContext(), "onStatusChanged: ["+provider+"]"+status, Toast.LENGTH_LONG).show();
+
+	boolean isMarshmallowOrAbove(){
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M;
 	}
-	
-	@Override
-	public void onGpsStatusChanged(int event) {
-		Toast.makeText(getReactApplicationContext(), "onGpsStatusChanged: "+event, Toast.LENGTH_LONG).show();
-	}
-	
-	@Override
-	public void onProviderEnabled(String provider) {
-		Toast.makeText(getReactApplicationContext(), "onProviderEnabled: "+provider, Toast.LENGTH_LONG).show();
-	}
-	
-	@Override
-	public void onProviderDisabled(String provider) {
-		Toast.makeText(getReactApplicationContext(), "onProviderDisabled: "+provider, Toast.LENGTH_LONG).show();
-	}
-	
-	@Override
-	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-		int rc = resultCode;
-		Toast.makeText(getReactApplicationContext(), "onActivityResult: "+rc, Toast.LENGTH_LONG).show();
-	}
-	
-	@Override
-	public void onNewIntent(Intent intent) {}
-	*/
-	
+
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
 		if(requestCode==REQUEST_CODE_AUTHORIZATION){
