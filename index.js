@@ -3,11 +3,12 @@
 const {NativeModules, NativeEventEmitter, Platform} = require('react-native');
 const {GPSState} = NativeModules;
 
+const isDroid = Platform.OS=='android';
+const isIOS = Platform.OS=='ios';
 const gpsStateEmitter = new NativeEventEmitter(GPSState);
 var subscription = null;
 var listener = null;
-const isDroid = Platform.OS=='android';
-const isIOS = Platform.OS=='ios';
+var isListening = true;
 
 subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 	if(listener){
@@ -18,32 +19,30 @@ subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 			status = response.status;
 		}
 
-		if(status)
+		if(status && isListening)
 			listener.apply(this, [status]);
 	}
 });
 
 GPSState.addListener = (callback)=>{
 	if(typeof callback == 'function'){
+		isListening = true;
 		listener = callback;
 		GPSState._startListen();
 	}
 }
 
 GPSState.removeListener = (callback)=>{
-	if(subscription){
-		GPSState._stopListen();
-		subscription.remove();
-		subscription = null;
-	}
+	isListening = false
+	GPSState._stopListen();
 }
 
 GPSState.getStatus = ()=>{
 	return GPSState._getStatus();
 }
 
-GPSState.openSettings = ()=>{
-	GPSState._openSettings();
+GPSState.openSettings = (openInDetails=true)=>{
+	GPSState._openSettings(openInDetails);
 }
 
 GPSState.requestAuthorization = (authType)=>{
