@@ -16,11 +16,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.PermissionChecker;
 import android.widget.Toast;
 
+import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -30,6 +32,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.modules.core.PermissionAwareActivity;
+import com.facebook.react.modules.core.PermissionListener;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
@@ -40,16 +44,15 @@ import java.util.Map;
  * Created by neuber on 14/08/17.
  */
  
-public class GPSStateModule extends ReactContextBaseJavaModule implements ActivityCompat.OnRequestPermissionsResultCallback /*, ActivityEventListener, LocationListener, GpsStatus.Listener*/ {
+public class GPSStateModule extends ReactContextBaseJavaModule /*implements ActivityEventListener, ActivityCompat.OnRequestPermissionsResultCallback , ActivityEventListener, LocationListener, GpsStatus.Listener*/ {
 	private static final int STATUS_NOT_DETERMINED = 0;
-	private static final int STATUS_RESTRICTED = 1;
-	private static final int STATUS_DENIED = 2;
-	private static final int STATUS_AUTHORIZED = 3;
-	private static final int STATUS_AUTHORIZED_ALWAYS = 3;
-	private static final int STATUS_AUTHORIZED_WHENINUSE = 4;
+	private static final int STATUS_RESTRICTED = 1; //Location is disabled
+	private static final int STATUS_DENIED = 2; //Permission for app to use location is denied
+	private static final int STATUS_AUTHORIZED = 3; //Permission for app to use location is granted
+	private static final int STATUS_AUTHORIZED_ALWAYS = 3; //Same as STATUS_AUTHORIZED
+	private static final int STATUS_AUTHORIZED_WHENINUSE = 4; //Permission for app to use location when in use is granted
 	
-	private static final int REQUEST_CODE_AUTHORIZATION = 1;
-	
+	private static final int REQUEST_CODE_AUTHORIZATION = 2308;
 	private static final String EVENT_STATUS_CHANGE = "OnStatusChange";
 
 	private boolean isListen = false;
@@ -89,20 +92,6 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		return constants;
 	}
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
-		if(requestCode==REQUEST_CODE_AUTHORIZATION){
-			int status = STATUS_NOT_DETERMINED;
-
-			if(grantResults.length>0) {
-				int result = grantResults[0];
-				status = (result == PackageManager.PERMISSION_GRANTED) ? STATUS_AUTHORIZED : STATUS_DENIED;
-			}
-			sendEvent(status);
-		}
-	}
-
-
 
 	@ReactMethod
 	public void _startListen() {
@@ -132,17 +121,15 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	}
 	
 	@ReactMethod
-	public void _openSettings(boolean openDetails){
+	public void _openSettings(boolean openInDetails){
 		Intent callGPSSettingIntent = new Intent();
 		String packageName = getReactApplicationContext().getPackageName();
 		String intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-		if(openDetails && isMarshmallowOrAbove()){
+		if(openInDetails && isMarshmallowOrAbove()){
 			intentAction = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-
+			
 			Uri uri = Uri.fromParts("package", packageName, null);
 			callGPSSettingIntent.setData(uri);
-
-			waitForPermissionBecomeGranted();
 		}
 
 		callGPSSettingIntent.setAction(intentAction);
@@ -151,8 +138,32 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	
 	@ReactMethod
 	public void _requestAuthorization(){
-		ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_AUTHORIZATION);
+		//ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_AUTHORIZATION);
+		String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
+		Activity activity = getCurrentActivity();
+		int requestCode = REQUEST_CODE_AUTHORIZATION;
+
+		if (activity instanceof ReactActivity){
+			((ReactActivity) activity).requestPermissions(permissions, requestCode, listener);
+
+		}else if (activity instanceof PermissionAwareActivity) {
+			((PermissionAwareActivity) activity).requestPermissions(permissions, requestCode, listener);
+
+		}else{
+			ActivityCompat.requestPermissions(activity, permissions, requestCode);
+		}
 	}
+
+	private PermissionListener listener = new PermissionListener()
+	{
+		public boolean onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults){
+			if(requestCode==REQUEST_CODE_AUTHORIZATION){
+				sendEvent(getGpsState());
+			}
+
+			return true;
+		}
+	};
 	
 	
 	

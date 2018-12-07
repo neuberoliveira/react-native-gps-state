@@ -18,9 +18,10 @@ subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 		}else{
 			status = response.status;
 		}
-
-		if(status && isListening)
+		
+		if(status && isListening){
 			listener.apply(this, [status]);
+		}
 	}
 });
 
@@ -41,8 +42,12 @@ GPSState.getStatus = ()=>{
 	return GPSState._getStatus();
 }
 
-GPSState.openSettings = (openInDetails=true)=>{
-	GPSState._openSettings(openInDetails);
+GPSState.openAppDetails = ()=>{
+	GPSState._openSettings(true);
+}
+
+GPSState.openLocationSettings = ()=>{
+	GPSState._openSettings(false);
 }
 
 GPSState.requestAuthorization = (authType)=>{
