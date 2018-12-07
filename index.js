@@ -41,7 +41,7 @@ GPSState.getStatus = ()=>{
 	return GPSState._getStatus();
 }
 
-GPSState.openSettings = (openInDetails=false)=>{
+GPSState.openSettings = (openInDetails=true)=>{
 	GPSState._openSettings(openInDetails);
 }
 

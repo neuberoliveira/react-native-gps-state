@@ -24,9 +24,13 @@ This lib will emitevent wheneaver the GPS status change, like when the permissio
 
 
 #### Methods
+Open the system Settings to enable user to toggle Location on.
+
+The parameter `openInDetails` (android only) is used to open app details screen (android M+ only), so the user can toggle the permission in `Permissions` tab.
+
 ```javascript
-//Open the system Settings to enable user to toggle Location on
-GPSState.openSettings();
+//openInDetails defaults to true
+GPSState.openSettings(openInDetails:boolean);
 ```
 
 ```javascript
