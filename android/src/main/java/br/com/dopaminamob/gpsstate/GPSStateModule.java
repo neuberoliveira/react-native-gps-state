@@ -35,10 +35,12 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * Created by neuber on 14/08/17.
  */
-public class GPSStateModule extends ReactContextBaseJavaModule implements ActivityCompat.OnRequestPermissionsResultCallback/*, ActivityEventListener, LocationListener, GpsStatus.Listener*/ {
+ 
+public class GPSStateModule extends ReactContextBaseJavaModule implements ActivityCompat.OnRequestPermissionsResultCallback /*, ActivityEventListener, LocationListener, GpsStatus.Listener*/ {
 	private static final int STATUS_NOT_DETERMINED = 0;
 	private static final int STATUS_RESTRICTED = 1;
 	private static final int STATUS_DENIED = 2;
@@ -52,9 +54,11 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 
 	private boolean isListen = false;
 	private int targetSdkVersion = -1;
-	private BroadcastReceiver mGpsSwitchStateReceiver = null;
-	private LocationManager locationManager;
-	
+    private int currentStatus = STATUS_NOT_DETERMINED;
+
+    private BroadcastReceiver mGpsSwitchStateReceiver = null;
+    private LocationManager locationManager;
+
 	public GPSStateModule(ReactApplicationContext reactContext) {
 		super(reactContext);
 		locationManager = (LocationManager) reactContext.getSystemService(reactContext.LOCATION_SERVICE);
@@ -84,8 +88,22 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		constants.put("AUTHORIZED_WHENINUSE", STATUS_AUTHORIZED_WHENINUSE);
 		return constants;
 	}
-	
-	
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
+		if(requestCode==REQUEST_CODE_AUTHORIZATION){
+			int status = STATUS_NOT_DETERMINED;
+
+			if(grantResults.length>0) {
+				int result = grantResults[0];
+				status = (result == PackageManager.PERMISSION_GRANTED) ? STATUS_AUTHORIZED : STATUS_DENIED;
+			}
+			sendEvent(status);
+		}
+	}
+
+
+
 	@ReactMethod
 	public void _startListen() {
 		_stopListen();
@@ -123,6 +141,8 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 
 			Uri uri = Uri.fromParts("package", packageName, null);
 			callGPSSettingIntent.setData(uri);
+
+			waitForPermissionBecomeGranted();
 		}
 
 		callGPSSettingIntent.setAction(intentAction);
@@ -137,13 +157,12 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 	
 	
 	int getGpsState(){
-		int status = STATUS_NOT_DETERMINED;
-		boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		
-		//TODO check permission to inform the correct status
+		int status;
+		boolean enabled = isGpsEnabled();
+
 		if(isMarshmallowOrAbove()) {
-			int permission = ActivityCompat.checkSelfPermission(getReactApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
-			boolean isGranted = permission == PackageManager.PERMISSION_GRANTED;
+            boolean isGranted = isPermissionGranted();
+
 			if(enabled) {
 				if(isGranted){
 					status = STATUS_AUTHORIZED;
@@ -156,9 +175,23 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		}else{
 			status = (enabled ? STATUS_AUTHORIZED : STATUS_RESTRICTED);
 		}
-		
+
+		currentStatus = status;
 		return status;
 	}
+
+	int getPermission(){
+	    return ActivityCompat.checkSelfPermission(getReactApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    boolean isPermissionGranted(){
+        int permission = getPermission();
+	    return permission == PackageManager.PERMISSION_GRANTED;
+    }
+
+    boolean isGpsEnabled(){
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
 	
 	
 	void sendEvent(int status){
@@ -173,19 +206,40 @@ public class GPSStateModule extends ReactContextBaseJavaModule implements Activi
 		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M;
 	}
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
-		if(requestCode==REQUEST_CODE_AUTHORIZATION){
-			int status = STATUS_NOT_DETERMINED;
-			
-			if(grantResults.length>0) {
-				int result = grantResults[0];
-				status = (result == PackageManager.PERMISSION_GRANTED) ? STATUS_AUTHORIZED : STATUS_DENIED;
-			}
-			sendEvent(status);
-		}
-	}
-	
+	boolean isPermissionEquals(int expectedPerm){
+	    return currentStatus == expectedPerm;
+    }
+
+    boolean isAuthorized(){
+        return isPermissionEquals(STATUS_AUTHORIZED);
+    }
+
+    boolean isDenied(){
+        return isPermissionEquals(STATUS_DENIED);
+    }
+
+    boolean isUnknow(){
+        return isPermissionEquals(STATUS_NOT_DETERMINED);
+    }
+
+    void waitForPermissionBecomeGranted(){
+        final Ticker ticker = new Ticker();
+        ticker.setInterval(3000);
+        ticker.setMaxTicks(30);
+        ticker.startTick(new TickerCallBack() {
+            @Override
+            public void tick() {
+                if(isPermissionGranted()){
+                    ticker.stopTick();
+                    sendEvent(getGpsState());
+                }
+            }
+        });
+    }
+
+
+
+
 	private final class GPSProvideChangeReceiver extends BroadcastReceiver {
 		
 		@Override

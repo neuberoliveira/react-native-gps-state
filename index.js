@@ -3,12 +3,12 @@
 const {NativeModules, NativeEventEmitter, Platform} = require('react-native');
 const {GPSState} = NativeModules;
 
+const isDroid = Platform.OS=='android';
+const isIOS = Platform.OS=='ios';
 const gpsStateEmitter = new NativeEventEmitter(GPSState);
 var subscription = null;
 var listener = null;
 var isListening = true;
-const isDroid = Platform.OS=='android';
-const isIOS = Platform.OS=='ios';
 
 subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 	if(listener){
