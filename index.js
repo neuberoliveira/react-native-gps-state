@@ -1,11 +1,13 @@
 'use strict'
 
 const {NativeModules, NativeEventEmitter, Platform} = require('react-native');
-const {GPSState} = NativeModules;
+const {GPSState as GPSStateNative} = NativeModules;
 
 const isDroid = Platform.OS=='android';
 const isIOS = Platform.OS=='ios';
 const gpsStateEmitter = new NativeEventEmitter(GPSState);
+const GPSState = {}
+
 var subscription = null;
 var listener = null;
 var isListening = true;
@@ -25,44 +27,60 @@ subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 	}
 });
 
+
+GPSState.openAppDetails = ()=>{
+	GPSStateNative.openSettings(true);
+}
+
+GPSState.openLocationSettings = ()=>{
+	GPSStateNative.openSettings(false);
+}
+
+GPSState.isMarshmallowOrAbove = ()=>{
+	if(isIOS){
+		return null
+	}
+	return GPSStateNative.isMarshmallowOrAbove();
+}
+
+GPSState.isAuthorized = ()=>{
+	return GPSStateNative.isAuthorized();
+}
+
+GPSState.isDenied = ()=>{
+	return GPSStateNative.isDenied();
+}
+
 GPSState.addListener = (callback)=>{
 	if(typeof callback == 'function'){
 		isListening = true;
 		listener = callback;
-		GPSState._startListen();
+		GPSStateNative.startListen();
 	}
 }
 
 GPSState.removeListener = (callback)=>{
 	isListening = false
-	GPSState._stopListen();
+	GPSStateNative.stopListen();
 }
 
 GPSState.getStatus = ()=>{
-	return GPSState._getStatus();
-}
-
-GPSState.openAppDetails = ()=>{
-	GPSState._openSettings(true);
-}
-
-GPSState.openLocationSettings = ()=>{
-	GPSState._openSettings(false);
+	return GPSStateNative.getStatus();
 }
 
 GPSState.requestAuthorization = (authType)=>{
 	if(isIOS){
 		var type = parseInt(authType);
-		var min = GPSState.STATUS_NOT_DETERMINED;
-		var max = GPSState.STATUS_AUTHORIZED_WHENINUSE;
+		var min = GPSStateNative.STATUS_NOT_DETERMINED;
+		var max = GPSStateNative.STATUS_AUTHORIZED_WHENINUSE;
 		var inRange = (type>=min && type <= max);
 
-		if(isNaN(type) || !inRange){
-			type = GPSState.AUTHORIZED_WHENINUSE;
+		if(isNaN(type)GPSStateNative || !inRange){
+			type = GPSStateNative.AUTHORIZED_WHENINUSE;
 		}
-		GPSState._requestAuthorization(type);
+		GPSStateNative.requestAuthorization(type);
 	}else{
-		GPSState._requestAuthorization();
+		GPSStateNative.requestAuthorization();
 	}
 }
 

@@ -94,8 +94,8 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 
 
 	@ReactMethod
-	public void _startListen() {
-		_stopListen();
+	public void startListen() {
+		stopListen();
 		try {
 			mGpsSwitchStateReceiver = new GPSProvideChangeReceiver();
 			getReactApplicationContext().registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
@@ -104,7 +104,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	}
 	
 	@ReactMethod
-	public void _stopListen() {
+	public void stopListen() {
 		isListen = false;
 		try {
 			//locationManager.removeGpsStatusListener(this);
@@ -116,12 +116,12 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	}
 	
 	@ReactMethod
-	public void _getStatus(Promise promise) {
+	public void getStatus(Promise promise) {
 		promise.resolve( getGpsState() );
 	}
 	
 	@ReactMethod
-	public void _openSettings(boolean openInDetails){
+	public void openSettings(boolean openInDetails){
 		Intent callGPSSettingIntent = new Intent();
 		String packageName = getReactApplicationContext().getPackageName();
 		String intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
@@ -137,7 +137,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	}
 	
 	@ReactMethod
-	public void _requestAuthorization(){
+	public void requestAuthorization(){
 		//ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_AUTHORIZATION);
 		String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
 		Activity activity = getCurrentActivity();

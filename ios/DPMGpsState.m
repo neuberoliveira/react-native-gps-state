@@ -28,6 +28,7 @@
 	@property(nonatomic, assign) id<CLLocationManagerDelegate> delegate;
 	@property(nonatomic, strong) CLLocationManager *manager;
 	@property(nonatomic, strong) NSDictionary *constants;
+	@property(nonatomic, strong) CLAuthorizationStatus *currentStatus;
 @end
 
 @implementation DPMGpsState
@@ -57,15 +58,15 @@ RCT_EXPORT_METHOD(_startListen){
 	}
 }
 
-RCT_EXPORT_METHOD(_stopListen){
+RCT_EXPORT_METHOD(stopListen){
 	self.manager.delegate = nil;
 }
 
-RCT_EXPORT_METHOD(_getStatus:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)callback){
 	callback(@[ [self getLocationStatus] ]);
 }
 
-RCT_REMAP_METHOD(_getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
 	NSNumber *status = [self getLocationStatus];
 	if(status >= 0){
 		resolve(status);
@@ -77,7 +78,7 @@ RCT_REMAP_METHOD(_getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resol
 	}
 }
 
-RCT_EXPORT_METHOD(_openSettings){
+RCT_EXPORT_METHOD(openSettings){
 	UIApplication *application = [UIApplication sharedApplication];
 	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
 	
@@ -88,7 +89,7 @@ RCT_EXPORT_METHOD(_openSettings){
 	}
 }
 
-RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
+RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 	int type = [authType intValue];
 	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
 	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
@@ -98,6 +99,18 @@ RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 	}else if(type==authAwalys){
 		[self.manager requestAlwaysAuthorization];
 	}
+}
+
+RCT_EXPORT_METHOD(isAuthorized){
+	return (
+		self.currentStatus==kCLAuthorizationStatusAuthorized ||
+		self.currentStatus==kCLAuthorizationStatusAuthorizedWhenInUse ||
+		self.currentStatus==kCLAuthorizationStatusAuthorizedAlways
+	);
+}
+
+RCT_EXPORT_METHOD(isDenied){
+	return self.currentStatus==kCLAuthorizationStatusDenied;
 }
 
 -(NSDictionary *)constantsToExport {
@@ -116,6 +129,11 @@ RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 
 
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
+	self.currentStatus = status;
 	[self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
+}
+
+-(bool)isPermissionEquals:(CLAuthorizationStatus *)expectedPerm {
+	return self.currentStatus==expectedPerm;
 }
 @end
