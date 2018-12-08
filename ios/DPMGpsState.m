@@ -103,14 +103,14 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 
 RCT_EXPORT_METHOD(isAuthorized){
 	return (
-		self.currentStatus==kCLAuthorizationStatusAuthorized ||
-		self.currentStatus==kCLAuthorizationStatusAuthorizedWhenInUse ||
-		self.currentStatus==kCLAuthorizationStatusAuthorizedAlways
+		self.isPermissionEquals(kCLAuthorizationStatusAuthorized) ||
+		self.isPermissionEquals(kCLAuthorizationStatusAuthorizedWhenInUse) ||
+		self.isPermissionEquals(kCLAuthorizationStatusAuthorizedAlways)
 	);
 }
 
 RCT_EXPORT_METHOD(isDenied){
-	return self.currentStatus==kCLAuthorizationStatusDenied;
+	return self.isPermissionEquals(kCLAuthorizationStatusDenied);
 }
 
 -(NSDictionary *)constantsToExport {
