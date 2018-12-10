@@ -8,22 +8,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.GpsStatus;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.PermissionChecker;
-import android.widget.Toast;
 
 import com.facebook.react.ReactActivity;
-import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -35,7 +26,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionAwareActivity;
 import com.facebook.react.modules.core.PermissionListener;
 
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,7 +84,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 
 
 	@ReactMethod
-	public void startListen() {
+	void startListen() {
 		stopListen();
 		try {
 			mGpsSwitchStateReceiver = new GPSProvideChangeReceiver();
@@ -104,7 +94,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	}
 	
 	@ReactMethod
-	public void stopListen() {
+	void stopListen() {
 		isListen = false;
 		try {
 			//locationManager.removeGpsStatusListener(this);
@@ -116,17 +106,18 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	}
 	
 	@ReactMethod
-	public void getStatus(Promise promise) {
-		promise.resolve( getGpsState() );
+	void getStatus(Promise promise) {
+	    promise.resolve(getGpsState());
 	}
 	
 	@ReactMethod
-	public void openSettings(boolean openInDetails){
+	void openSettings(boolean openInDetails){
 		Intent callGPSSettingIntent = new Intent();
 		String packageName = getReactApplicationContext().getPackageName();
-		String intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-		if(openInDetails && isMarshmallowOrAbove()){
-			intentAction = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+		String intentAction = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
+
+		if(openInDetails && _NativeisMarshmallowOrAbove()){
+			intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 			
 			Uri uri = Uri.fromParts("package", packageName, null);
 			callGPSSettingIntent.setData(uri);
@@ -154,7 +145,17 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 		}
 	}
 
-	private PermissionListener listener = new PermissionListener()
+    @ReactMethod
+    void isMarshmallowOrAbove(Promise promise) {
+        promise.resolve( _NativeisMarshmallowOrAbove() );
+    }
+
+
+    boolean _NativeisMarshmallowOrAbove(){
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M;
+    }
+
+    private PermissionListener listener = new PermissionListener()
 	{
 		public boolean onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults){
 			if(requestCode==REQUEST_CODE_AUTHORIZATION){
@@ -171,7 +172,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 		int status;
 		boolean enabled = isGpsEnabled();
 
-		if(isMarshmallowOrAbove()) {
+		if(_NativeisMarshmallowOrAbove()) {
             boolean isGranted = isPermissionGranted();
 
 			if(enabled) {
@@ -213,52 +214,13 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 		reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(EVENT_STATUS_CHANGE, params);
 	}
 
-	boolean isMarshmallowOrAbove(){
-		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M;
-	}
-
-	boolean isPermissionEquals(int expectedPerm){
-	    return currentStatus == expectedPerm;
-    }
-
-    boolean isAuthorized(){
-        return isPermissionEquals(STATUS_AUTHORIZED);
-    }
-
-    boolean isDenied(){
-        return isPermissionEquals(STATUS_DENIED);
-    }
-
-    boolean isUnknow(){
-        return isPermissionEquals(STATUS_NOT_DETERMINED);
-    }
-
-    void waitForPermissionBecomeGranted(){
-        final Ticker ticker = new Ticker();
-        ticker.setInterval(3000);
-        ticker.setMaxTicks(30);
-        ticker.startTick(new TickerCallBack() {
-            @Override
-            public void tick() {
-                if(isPermissionGranted()){
-                    ticker.stopTick();
-                    sendEvent(getGpsState());
-                }
-            }
-        });
-    }
-
-
-
-
 	private final class GPSProvideChangeReceiver extends BroadcastReceiver {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			if (action.matches("android.location.PROVIDERS_CHANGED")) {
-				int status = getGpsState();
-				sendEvent(status);
+				sendEvent(getGpsState());
 			}
 		}
 	}
