@@ -47,6 +47,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 
 	private boolean isListen = false;
 	private int targetSdkVersion = -1;
+	private int deviceSdkVersion = Build.VERSION.SDK_INT;
     private int currentStatus = STATUS_NOT_DETERMINED;
 
     private BroadcastReceiver mGpsSwitchStateReceiver = null;
@@ -116,7 +117,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 		String packageName = getReactApplicationContext().getPackageName();
 		String intentAction = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
 
-		if(openInDetails && _NativeisMarshmallowOrAbove()){
+		if(openInDetails && _NativeIsDeviceMOrAbove()){
 			intentAction = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 			
 			Uri uri = Uri.fromParts("package", packageName, null);
@@ -129,31 +130,36 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 	
 	@ReactMethod
 	public void requestAuthorization(){
-		//ActivityCompat.requestPermissions(getCurrentActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_AUTHORIZATION);
-		String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-		Activity activity = getCurrentActivity();
-		int requestCode = REQUEST_CODE_AUTHORIZATION;
+		if(_NativeIsDeviceMOrAbove()) {
+			String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
+			Activity activity = getCurrentActivity();
+			int requestCode = REQUEST_CODE_AUTHORIZATION;
 
-		if (activity instanceof ReactActivity){
-			((ReactActivity) activity).requestPermissions(permissions, requestCode, listener);
+			if (activity instanceof ReactActivity) {
+				((ReactActivity) activity).requestPermissions(permissions, requestCode, listener);
 
-		}else if (activity instanceof PermissionAwareActivity) {
-			((PermissionAwareActivity) activity).requestPermissions(permissions, requestCode, listener);
+			} else if (activity instanceof PermissionAwareActivity) {
+				((PermissionAwareActivity) activity).requestPermissions(permissions, requestCode, listener);
 
-		}else{
-			ActivityCompat.requestPermissions(activity, permissions, requestCode);
+			} else {
+				ActivityCompat.requestPermissions(activity, permissions, requestCode);
+			}
 		}
 	}
 
     @ReactMethod
     void isMarshmallowOrAbove(Promise promise) {
-        promise.resolve( _NativeisMarshmallowOrAbove() );
+        promise.resolve( _NativeIsDeviceMOrAbove() );
     }
 
 
-    boolean _NativeisMarshmallowOrAbove(){
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || targetSdkVersion >= Build.VERSION_CODES.M;
-    }
+	boolean _NativeIsDeviceMOrAbove(){
+		return deviceSdkVersion >= Build.VERSION_CODES.M;
+	}
+
+	boolean _NativeIsTargetMOrAbove(){
+		return targetSdkVersion >= Build.VERSION_CODES.M;
+	}
 
     private PermissionListener listener = new PermissionListener()
 	{
@@ -172,7 +178,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 		int status;
 		boolean enabled = isGpsEnabled();
 
-		if(_NativeisMarshmallowOrAbove()) {
+		if(_NativeIsDeviceMOrAbove()) {
             boolean isGranted = isPermissionGranted();
 
 			if(enabled) {
