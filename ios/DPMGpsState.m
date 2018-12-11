@@ -101,18 +101,6 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 	}
 }
 
-RCT_EXPORT_METHOD(isAuthorized){
-	return (
-		self.isPermissionEquals(kCLAuthorizationStatusAuthorized) ||
-		self.isPermissionEquals(kCLAuthorizationStatusAuthorizedWhenInUse) ||
-		self.isPermissionEquals(kCLAuthorizationStatusAuthorizedAlways)
-	);
-}
-
-RCT_EXPORT_METHOD(isDenied){
-	return self.isPermissionEquals(kCLAuthorizationStatusDenied);
-}
-
 -(NSDictionary *)constantsToExport {
 	return self.constants;
 }
@@ -131,9 +119,5 @@ RCT_EXPORT_METHOD(isDenied){
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
 	self.currentStatus = status;
 	[self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
-}
-
--(bool)isPermissionEquals:(CLAuthorizationStatus *)expectedPerm {
-	return self.currentStatus==expectedPerm;
 }
 @end
