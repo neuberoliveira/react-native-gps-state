@@ -28,7 +28,6 @@
 	@property(nonatomic, assign) id<CLLocationManagerDelegate> delegate;
 	@property(nonatomic, strong) CLLocationManager *manager;
 	@property(nonatomic, strong) NSDictionary *constants;
-	@property(nonatomic, strong) CLAuthorizationStatus *currentStatus;
 @end
 
 @implementation DPMGpsState
@@ -58,15 +57,15 @@ RCT_EXPORT_METHOD(_startListen){
 	}
 }
 
-RCT_EXPORT_METHOD(stopListen){
+RCT_EXPORT_METHOD(_stopListen){
 	self.manager.delegate = nil;
 }
 
-RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)callback){
+RCT_EXPORT_METHOD(_getStatus:(RCTResponseSenderBlock)callback){
 	callback(@[ [self getLocationStatus] ]);
 }
 
-RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_REMAP_METHOD(_getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
 	NSNumber *status = [self getLocationStatus];
 	if(status >= 0){
 		resolve(status);
@@ -78,7 +77,7 @@ RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolv
 	}
 }
 
-RCT_EXPORT_METHOD(openSettings){
+RCT_EXPORT_METHOD(_openSettings){
 	UIApplication *application = [UIApplication sharedApplication];
 	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
 	
@@ -89,7 +88,7 @@ RCT_EXPORT_METHOD(openSettings){
 	}
 }
 
-RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
+RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 	int type = [authType intValue];
 	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
 	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
@@ -117,7 +116,6 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 
 
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-	self.currentStatus = status;
 	[self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
 }
 @end
