@@ -9,16 +9,16 @@
 /*
  kCLAuthorizationStatusNotDetermined
  The user has not yet made a choice regarding whether this app can use location services.
- 
+
  kCLAuthorizationStatusRestricted
  This app is not authorized to use location services.
- 
+
  kCLAuthorizationStatusDenied
  The user explicitly denied the use of location services for this app or location services are currently disabled in Settings.
- 
+
  kCLAuthorizationStatusAuthorizedAlways
  This app is authorized to start location services at any time.
- 
+
  kCLAuthorizationStatusAuthorizedWhenInUse
  This app is authorized to start most location services while running in the foreground.*/
 
@@ -47,6 +47,10 @@
 	return self;
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+    return YES;
+}
 
 RCT_EXPORT_MODULE(GPSState);
 
@@ -80,7 +84,7 @@ RCT_REMAP_METHOD(_getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resol
 RCT_EXPORT_METHOD(_openSettings){
 	UIApplication *application = [UIApplication sharedApplication];
 	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-	
+
 	if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
 		[application openURL:url options:@{} completionHandler:nil];
 	}else{
@@ -92,7 +96,7 @@ RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 	int type = [authType intValue];
 	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
 	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
-	
+
 	if(type==authInUse){
 		[self.manager requestWhenInUseAuthorization];
 	}else if(type==authAwalys){
@@ -109,7 +113,7 @@ RCT_EXPORT_METHOD(_requestAuthorization:(nonnull NSNumber*)authType){
 }
 
 
-#pragma mark Class Helpers 
+#pragma mark Class Helpers
 -(NSNumber*)getLocationStatus {
 	return [NSNumber numberWithInt:[CLLocationManager authorizationStatus]];
 }
