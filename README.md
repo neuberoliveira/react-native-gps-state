@@ -65,40 +65,64 @@ protected List<ReactPackage> getPackages() {
 
 
 #### Methods
-Open the system Settings to enable user to toggle Location on.
-
-The parameter `openInDetails` (android only) is used to open app details screen (android M+ only), so the user can toggle the permission in `Permissions` tab.
+```javascript
+//Open a system dialog requesting permission
+//authType could be one of `AUTHORIZED_ALWAYS` or `AUTHORIZED_WHENINUSE`
+GPSState.requestAuthorization(authType)
+```
 
 ```javascript
-//openInDetails defaults to true
-GPSState.openSettings(openInDetails:boolean);
+//Open the system Settings to enable user to toggle Location on.
+GPSState.openLocationSettings()
+```
+
+```javascript
+//Open the system Settings in app details, so the user could manage all permissions in the `Permissions` tab
+//in Android bellow M will fallback to `openLocationSettings()`
+GPSState.openAppDetails()
+```
+
+```javascript
+//ANDROID ONLY
+//return true if system version is Marshmallow or above
+GPSState.isMarshmallowOrAbove()
+```
+
+```javascript
+//return true if the location permission is granted
+GPSState.isAuthorized()
+```
+
+```javascript
+//return true if the location permission is denied
+GPSState.isDenied()
 ```
 
 ```javascript
 //Get the current GPS state
 GPSState.getStatus().then((status)=>{
 
-});
+})
 ```
 
 #### Listeners
 
 ```javascript
-import GPSState from 'react-native-gps-state';
+import GPSState from 'react-native-gps-state'
 ...
 componentWillMount(){
 	GPSState.addListener((status)=>{
 		switch(status){
 			case GPSState.NOT_DETERMINED:
-				alert('Please, allow the location, for us to do amazing things for you!');
+				alert('Please, allow the location, for us to do amazing things for you!')
 			break;
 
 			case GPSState.RESTRICTED:
-				GPSState.openSettings();
+				GPSState.openLocationSettings()
 			break;
 
 			case GPSState.DENIED:
-				alert('It`s a shame that you do not allowed us to use location :(');
+				alert('It`s a shame that you do not allowed us to use location :(')
 			break;
 
 			case GPSState.AUTHORIZED_ALWAYS:
@@ -109,10 +133,11 @@ componentWillMount(){
 				//TODO do something amazing with you app
 			break;
 		}
-	});
+	})
+	GPSState.requestAuthorization(GPSState.AUTHORIZED_WHENINUSE)
 }
 
 componentWillUnmount(){
-	GPSState.removeListener();
+	GPSState.removeListener()
 }
 ```
