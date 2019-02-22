@@ -35,7 +35,7 @@ var _currentStatus:number = GPSStateNative.NOT_DETERMINED
 var _isMarshmallowOrAbove:boolean = false
 
 GPSStateNative.getStatus().then((status:number)=>_currentStatus = status)
-if (isDroid) {
+if(isDroid){
 	GPSStateNative.isMarshmallowOrAbove().then((isM:boolean)=>_isMarshmallowOrAbove = isM)
 }
 
@@ -69,9 +69,6 @@ const GPSState:GPSStateType = {
 		GPSStateNative.openSettings(false)
 	},
 	isMarshmallowOrAbove:()=>{
-		if(isIOS){
-			return false
-		}
 		return _isMarshmallowOrAbove
 	},
 	
