@@ -1,7 +1,7 @@
 {
   "name": "react-native-gps-state",
   "description": "React Native Listener for GPS status changes",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "main": "index.js",
   "repository": {
     "type": "git",
