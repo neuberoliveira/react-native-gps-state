@@ -9,6 +9,7 @@
   },
   "nativePackage": true,
   "author": "Neuber Oliveira (neuberoliveira)",
+  "license": "MIT",
   "contributors": [],
   "keywords": [
     "react-native",
