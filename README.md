@@ -9,7 +9,7 @@ This lib will emitevent wheneaver the GPS status change, like when the permissio
    - OR `npm install --save react-native-gps-state`
 2. Link library to project
    - `react-native link react-native-gps-state`
-   
+
 If the link fails, do a manual setup:
 
 #### Android
@@ -51,10 +51,10 @@ protected List<ReactPackage> getPackages() {
 ```
 
 
-### Usage 
+### Usage
 
 ### Constants
-| Platform 			| Status Code 	| Constant 				| Description 		
+| Platform 			| Status Code 	| Constant 				| Description
 | :--- 				| :---:			| :--- 					| :---
 | IOS/Android		| 0 	 		| NOT_DETERMINED 		| The user has not yet made a choice regarding whether this app can use location services.
 | IOS/Android		| 1 	 		| RESTRICTED 			| This app is not authorized to use location services.
