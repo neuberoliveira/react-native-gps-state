@@ -9,16 +9,16 @@
 /*
  kCLAuthorizationStatusNotDetermined
  The user has not yet made a choice regarding whether this app can use location services.
- 
+
  kCLAuthorizationStatusRestricted
  This app is not authorized to use location services.
- 
+
  kCLAuthorizationStatusDenied
  The user explicitly denied the use of location services for this app or location services are currently disabled in Settings.
- 
+
  kCLAuthorizationStatusAuthorizedAlways
  This app is authorized to start location services at any time.
- 
+
  kCLAuthorizationStatusAuthorizedWhenInUse
  This app is authorized to start most location services while running in the foreground.*/
 
@@ -47,7 +47,7 @@
 								[NSNumber numberWithInt:kCLAuthorizationStatusAuthorizedWhenInUse], @"AUTHORIZED_WHENINUSE",
 								nil];
 	}
-    
+
     if(!self.manager.delegate){
         self.manager.delegate = self;
     }
@@ -58,7 +58,7 @@ RCT_EXPORT_MODULE(GPSState);
 
 #pragma mark Exported Methods
 RCT_EXPORT_METHOD(startListen){
-	
+
 }
 
 RCT_EXPORT_METHOD(stopListen){
@@ -84,7 +84,7 @@ RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolv
 RCT_EXPORT_METHOD(openSettings){
 	UIApplication *application = [UIApplication sharedApplication];
 	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-	
+
 	if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
 		[application openURL:url options:@{} completionHandler:nil];
 	}else{
@@ -96,7 +96,7 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 	int type = [authType intValue];
 	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
 	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
-	
+
 	if(type==authInUse){
 		[self.manager requestWhenInUseAuthorization];
 	}else if(type==authAwalys){
@@ -131,7 +131,7 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 }
 
 
-#pragma mark Class Helpers 
+#pragma mark Class Helpers
 -(NSNumber*)getLocationStatus {
 	return [NSNumber numberWithInt:[CLLocationManager authorizationStatus]];
 }
