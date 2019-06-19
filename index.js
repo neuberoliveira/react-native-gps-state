@@ -19,8 +19,8 @@ type GPSStateType = {
 	removeListener:()=>void,
 	getStatus:()=>Promise<number>,
 	requestAuthorization:(authType:number)=>void,
-	
 }
+
 const {NativeModules, NativeEventEmitter, Platform} = require('react-native')
 const GPSStateNative = NativeModules.GPSState
 
@@ -46,13 +46,12 @@ _subscription = gpsStateEmitter.addListener('OnStatusChange', (response)=>{
 	}else{
 		status = response.status
 	}
-	
+
 	_currentStatus = status
 	if(_listener && status && _isListening){
 		_listener(status)
 	}
 })
-
 
 const GPSState:GPSStateType = {
     NOT_DETERMINED: GPSStateNative.NOT_DETERMINED,
@@ -61,7 +60,7 @@ const GPSState:GPSStateType = {
     AUTHORIZED: GPSStateNative.AUTHORIZED,
     AUTHORIZED_ALWAYS: GPSStateNative.AUTHORIZED_ALWAYS,
 	AUTHORIZED_WHENINUSE: GPSStateNative.AUTHORIZED_WHENINUSE,
-	
+
 	openAppDetails:()=>{
 		GPSStateNative.openSettings(true)
 	},
@@ -71,15 +70,15 @@ const GPSState:GPSStateType = {
 	isMarshmallowOrAbove:()=>{
 		return _isMarshmallowOrAbove
 	},
-	
+
 	isAuthorized:()=>(isPermissionEquals(GPSStateNative.AUTHORIZED_WHENINUSE) || isPermissionEquals(GPSStateNative.AUTHORIZED_ALWAYS)),
-	
+
 	isDenied:()=> isPermissionEquals(GPSStateNative.DENIED),
-	
+
 	isRestricted:()=> isPermissionEquals(GPSStateNative.RESTRICTED),
-	
+
 	isNotDetermined:()=> isPermissionEquals(GPSStateNative.NOT_DETERMINED),
-	
+
 	addListener:(callback:ListenerFunc)=>{
 		if(typeof callback == 'function'){
 			_isListening = true
@@ -87,22 +86,22 @@ const GPSState:GPSStateType = {
 			GPSStateNative.startListen()
 		}
 	},
-	
+
 	removeListener:()=>{
 		_isListening = false
 		_listener = null
 		GPSStateNative.stopListen()
 	},
-	
+
 	getStatus:()=>GPSStateNative.getStatus(),
-	
+
 	requestAuthorization: (authType)=>{
 		if(isIOS){
 			var type = parseInt(authType)
 			var min = GPSStateNative.STATUS_NOT_DETERMINED
 			var max = GPSStateNative.STATUS_AUTHORIZED_WHENINUSE
 			var inRange = (type>=min && type <= max)
-	
+
 			if(isNaN(type) || !inRange){
 				type = GPSStateNative.AUTHORIZED_WHENINUSE
 			}
@@ -116,4 +115,5 @@ const GPSState:GPSStateType = {
 function isPermissionEquals(expectedPerm){
 	return _currentStatus == expectedPerm;
 }
+
 module.exports = GPSState
