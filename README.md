@@ -1,7 +1,7 @@
 # React Native GPS State
 
 ### React Native Listener for GPS status changes
-This lib will emitevent wheneaver the GPS status change, like when the permission was rejected or user disable Location service in system Settings.
+This library will emit an event whenever there is a change in the GPS status, like when the permission was rejected or when the user disables Location Service in the phone settings.
 
 ### Instalation
 1. Add library to project
