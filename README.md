@@ -26,7 +26,7 @@ project(':react-native-gps-state').projectDir = new File(rootProject.projectDir,
 ```gradle
 dependencies {
    ...
-   compile project(':react-native-gps-state')
+   implementation project(':react-native-gps-state')
 }
 ```
 
