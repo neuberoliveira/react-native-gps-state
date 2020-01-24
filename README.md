@@ -1,7 +1,7 @@
 # React Native GPS State
 
 ### React Native Listener for GPS status changes
-This lib will emitevent wheneaver the GPS status change, like when the permission was rejected or user disable Location service in system Settings.
+This library will emit an event whenever there is a change in the GPS status, like when the permission was rejected or when the user disables Location Service in the phone settings.
 
 ### Instalation
 1. Add library to project
@@ -10,10 +10,51 @@ This lib will emitevent wheneaver the GPS status change, like when the permissio
 2. Link library to project
    - `react-native link react-native-gps-state`
 
-### Usage 
+If the link fails, do a manual setup:
+
+#### Android
+
+**android/settings.gradle**
+
+```gradle
+include ':react-native-gps-state'
+project(':react-native-gps-state').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gps-state/android')
+```
+
+**android/app/build.gradle**
+
+```gradle
+dependencies {
+   ...
+   compile project(':react-native-gps-state')
+}
+```
+
+**MainApplication.java**
+
+On top, where imports are:
+
+```java
+import br.com.dopaminamob.gpsstate.GPSStatePackage;
+```
+
+Add the `new GPSStatePackage()` class to your list of exported packages.
+
+```java
+@Override
+protected List<ReactPackage> getPackages() {
+    return Arrays.asList(
+            new MainReactPackage(),
+            new GPSStatePackage(),
+    );
+}
+```
+
+
+### Usage
 
 ### Constants
-| Platform 			| Status Code 	| Constant 				| Description 		
+| Platform 			| Status Code 	| Constant 				| Description
 | :--- 				| :---:			| :--- 					| :---
 | IOS/Android		| 0 	 		| NOT_DETERMINED 		| The user has not yet made a choice regarding whether this app can use location services.
 | IOS/Android		| 1 	 		| RESTRICTED 			| This app is not authorized to use location services.

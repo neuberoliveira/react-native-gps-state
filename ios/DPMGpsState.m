@@ -25,83 +25,84 @@
 #import "DPMGpsState.h"
 
 @interface DPMGpsState()
-	@property(nonatomic, assign) id<CLLocationManagerDelegate> delegate;
-	@property(nonatomic, strong) CLLocationManager *manager;
-	@property(nonatomic, strong) NSDictionary *constants;
-	@property(nonatomic, assign) CLAuthorizationStatus *currentStatus;
-	@property(nonatomic, assign) bool hasListeners;
+@property(nonatomic, assign) id<CLLocationManagerDelegate> delegate;
+@property(nonatomic, strong) CLLocationManager *manager;
+@property(nonatomic, strong) NSDictionary *constants;
+@property(nonatomic, assign) CLAuthorizationStatus *currentStatus;
+@property(nonatomic, assign) bool hasListeners;
 @end
 
 @implementation DPMGpsState
 -(id)init {
-	self = [super init];
-	if (self) {
+    self = [super init];
+    if (self) {
         self.hasListeners = NO;
-		self.manager = [[CLLocationManager alloc] init];
-		self.constants = [[NSDictionary alloc] initWithObjectsAndKeys:
-								[NSNumber numberWithInt:kCLAuthorizationStatusNotDetermined], @"NOT_DETERMINED",
-								[NSNumber numberWithInt:kCLAuthorizationStatusRestricted], @"RESTRICTED",
-								[NSNumber numberWithInt:kCLAuthorizationStatusDenied], @"DENIED",
-								[NSNumber numberWithInt:kCLAuthorizationStatusAuthorized], @"AUTHORIZED",
-								[NSNumber numberWithInt:kCLAuthorizationStatusAuthorizedAlways], @"AUTHORIZED_ALWAYS",
-								[NSNumber numberWithInt:kCLAuthorizationStatusAuthorizedWhenInUse], @"AUTHORIZED_WHENINUSE",
-								nil];
-	}
+        self.manager = [[CLLocationManager alloc] init];
+        self.constants = [[NSDictionary alloc] initWithObjectsAndKeys:
+                          [NSNumber numberWithInt:kCLAuthorizationStatusNotDetermined], @"NOT_DETERMINED",
+                          [NSNumber numberWithInt:kCLAuthorizationStatusRestricted], @"RESTRICTED",
+                          [NSNumber numberWithInt:kCLAuthorizationStatusDenied], @"DENIED",
+                          [NSNumber numberWithInt:kCLAuthorizationStatusAuthorized], @"AUTHORIZED",
+                          [NSNumber numberWithInt:kCLAuthorizationStatusAuthorizedAlways], @"AUTHORIZED_ALWAYS",
+                          [NSNumber numberWithInt:kCLAuthorizationStatusAuthorizedWhenInUse], @"AUTHORIZED_WHENINUSE",
+                          nil];
+    }
     
     if(!self.manager.delegate){
         self.manager.delegate = self;
     }
-	return self;
+    return self;
 }
 
 RCT_EXPORT_MODULE(GPSState);
 
 #pragma mark Exported Methods
 RCT_EXPORT_METHOD(startListen){
-	
+    
 }
 
 RCT_EXPORT_METHOD(stopListen){
-	self.manager.delegate = nil;
+    self.manager.delegate = nil;
 }
 
 RCT_EXPORT_METHOD(getStatus:(RCTResponseSenderBlock)callback){
-	callback(@[ [self getLocationStatus] ]);
+    callback(@[ [self getLocationStatus] ]);
 }
 
 RCT_REMAP_METHOD(getStatus, getStatusWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-	NSNumber *status = [self getLocationStatus];
-	if(status >= 0){
-		resolve(status);
-	}else{
-		NSString *errorStrCode = [NSString stringWithFormat:@"%@", status];
-		NSString *errorStr = @"UNKNOW_STATUS";
-		//NSError *error = [[NSError alloc] initWithDomain:errorStr code:0 userInfo:nil];
-		reject(errorStrCode, errorStr, nil);
-	}
+    NSNumber *status = [self getLocationStatus];
+    if(status >= 0){
+        resolve(status);
+    }else{
+        NSString *errorStrCode = [NSString stringWithFormat:@"%@", status];
+        NSString *errorStr = @"UNKNOW_STATUS";
+        //NSError *error = [[NSError alloc] initWithDomain:errorStr code:0 userInfo:nil];
+        reject(errorStrCode, errorStr, nil);
+    }
 }
 
-RCT_EXPORT_METHOD(openSettings){
-	UIApplication *application = [UIApplication sharedApplication];
-	NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-	
-	if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-		[application openURL:url options:@{} completionHandler:nil];
-	}else{
-		[application openURL:url];
-	}
+// openInDetails this params is ANDROID only, its here just for compatibility in JS code
+RCT_EXPORT_METHOD(openSettings:(BOOL)openInDetails){
+    UIApplication *application = [UIApplication sharedApplication];
+    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+    
+    if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
+        [application openURL:url options:@{} completionHandler:nil];
+    }else{
+        [application openURL:url];
+    }
 }
 
 RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
-	int type = [authType intValue];
-	int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
-	int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
-	
-	if(type==authInUse){
-		[self.manager requestWhenInUseAuthorization];
-	}else if(type==authAwalys){
-		[self.manager requestAlwaysAuthorization];
-	}
+    int type = [authType intValue];
+    int authInUse = [[self.constants objectForKey:@"AUTHORIZED_WHENINUSE"] intValue];
+    int authAwalys = [[self.constants objectForKey:@"AUTHORIZED_ALWAYS"] intValue];
+    
+    if(type==authInUse){
+        [self.manager requestWhenInUseAuthorization];
+    }else if(type==authAwalys){
+        [self.manager requestAlwaysAuthorization];
+    }
 }
 
 -(dispatch_queue_t)methodQueue {
@@ -123,24 +124,24 @@ RCT_EXPORT_METHOD(requestAuthorization:(nonnull NSNumber*)authType){
 }
 
 -(NSDictionary *)constantsToExport {
-	return self.constants;
+    return self.constants;
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-	return @[@"OnStatusChange"];
+    return @[@"OnStatusChange"];
 }
 
 
-#pragma mark Class Helpers 
+#pragma mark Class Helpers
 -(NSNumber*)getLocationStatus {
-	return [NSNumber numberWithInt:[CLLocationManager authorizationStatus]];
+    return [NSNumber numberWithInt:[CLLocationManager authorizationStatus]];
 }
 
 
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-	self.currentStatus = status;
-	if(self.hasListeners){
-		[self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
-	}
+    self.currentStatus = status;
+    if(self.hasListeners){
+        [self sendEventWithName:@"OnStatusChange" body:[NSNumber numberWithInt:status]];
+    }
 }
 @end
