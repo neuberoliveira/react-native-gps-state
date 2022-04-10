@@ -1,3 +1,17 @@
+buildscript {
+    if (project == rootProject) {
+        repositories {
+            google()
+            mavenCentral()
+            jcenter()
+        }
+
+        dependencies {
+            classpath 'com.android.tools.build:gradle:3.5.3'
+        }
+    }
+}
+
 apply plugin: 'com.android.library'
 
 def safeExtGet(prop, fallback) {
@@ -5,16 +19,41 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', 26)
-    buildToolsVersion safeExtGet('buildToolsVersion', '28.0.3')
-
+    compileSdkVersion safeExtGet('GpsState_compileSdkVersion', 29)
     defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 16)
-        targetSdkVersion safeExtGet('minSdkVersion', 26)
+        minSdkVersion safeExtGet('GpsState_minSdkVersion', 16)
+        targetSdkVersion safeExtGet('GpsState_targetSdkVersion', 29)
+        versionCode 3
+        versionName "3.0"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    lintOptions {
+        disable 'GradleCompatible'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
+repositories {
+    mavenLocal()
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url("$rootDir/../node_modules/react-native/android")
+    }
+    google()
+    mavenCentral()
+    jcenter()
+}
+
 dependencies {
+    //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
-    implementation "com.android.support:appcompat-v7:${safeExtGet('supportLibVersion', '26.1.0')}"
 }

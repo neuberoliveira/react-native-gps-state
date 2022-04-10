@@ -1,4 +1,4 @@
-package br.com.dopaminamob.gpsstate;
+package br.com.neuberoliveira.gpsstate;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,8 +12,12 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -29,7 +33,10 @@ import com.facebook.react.modules.core.PermissionListener;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GPSStateModule extends ReactContextBaseJavaModule /*implements ActivityEventListener, ActivityCompat.OnRequestPermissionsResultCallback , ActivityEventListener, LocationListener, GpsStatus.Listener*/ {
+@ReactModule(name = GpsStateModule.NAME)
+public class GpsStateModule extends ReactContextBaseJavaModule {
+    public static final String NAME = "GPSState";
+
     private static final int STATUS_NOT_DETERMINED = 0;
     private static final int STATUS_RESTRICTED = 1; //Location is disabled
     private static final int STATUS_DENIED = 2; //Permission for app to use location is denied
@@ -48,21 +55,25 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
     private BroadcastReceiver mGpsSwitchStateReceiver = null;
     private LocationManager locationManager;
 
-    public GPSStateModule(ReactApplicationContext reactContext) {
+    private ReactApplicationContext currentContext;
+
+    public GpsStateModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        currentContext = reactContext;
         locationManager = (LocationManager) reactContext.getSystemService(reactContext.LOCATION_SERVICE);
 
         try {
             final PackageInfo info = reactContext.getPackageManager().getPackageInfo(reactContext.getPackageName(), 0);
             targetSdkVersion = info.applicationInfo.targetSdkVersion;
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+          e.printStackTrace();
         }
     }
 
     @Override
+    @NonNull
     public String getName() {
-        return "GPSState";
+        return NAME;
     }
 
     @Override
@@ -74,31 +85,38 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
         constants.put("AUTHORIZED", STATUS_AUTHORIZED);
         constants.put("AUTHORIZED_ALWAYS", STATUS_AUTHORIZED_ALWAYS);
         constants.put("AUTHORIZED_WHENINUSE", STATUS_AUTHORIZED_WHENINUSE);
+        constants.put("EVENT_STATUS_NAME", EVENT_STATUS_CHANGE);
         return constants;
     }
 
     @ReactMethod
     void startListen() {
-        stopListen();
-        try {
+        Log.i(NAME, "Android start to listen");
+        // stopListen();
+         try {
             mGpsSwitchStateReceiver = new GPSProvideChangeReceiver();
-            getReactApplicationContext().registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+            currentContext.registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
             isListen = true;
-        } catch (Exception ex) {
-        }
+         } catch (Exception ex) {
+           Log.e(NAME, "StartListen error: "+ex.getMessage());
+           ex.printStackTrace();
+         }
     }
 
     @ReactMethod
     void stopListen() {
+        Log.i(NAME, "Android stop listen");
         isListen = false;
-        try {
+         try {
             //locationManager.removeGpsStatusListener(this);
             if (mGpsSwitchStateReceiver != null) {
-                getReactApplicationContext().unregisterReceiver(mGpsSwitchStateReceiver);
+                currentContext.unregisterReceiver(mGpsSwitchStateReceiver);
                 mGpsSwitchStateReceiver = null;
             }
-        } catch (Exception ex) {
-        }
+         } catch (Exception ex) {
+           Log.e(NAME, "StopListen error: "+ex.getMessage());
+           ex.printStackTrace();
+         }
     }
 
     @ReactMethod
@@ -106,10 +124,9 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
         promise.resolve(getGpsState());
     }
 
-    @ReactMethod
-    void openSettings(boolean openInDetails) {
+    void settingsOpener(boolean openInDetails) {
         Intent callGPSSettingIntent = new Intent();
-        String packageName = getReactApplicationContext().getPackageName();
+        String packageName = currentContext.getPackageName();
         String intentAction = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
 
         if (openInDetails && _NativeIsDeviceMOrAbove()) {
@@ -121,6 +138,16 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
 
         callGPSSettingIntent.setAction(intentAction);
         getCurrentActivity().startActivityForResult(callGPSSettingIntent, 0);
+    }
+
+    @ReactMethod
+    void openSettings() {
+        settingsOpener(true);
+    }
+
+    @ReactMethod
+    void openLocationSettings() {
+        settingsOpener(false);
     }
 
     @ReactMethod
@@ -155,14 +182,14 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
         return targetSdkVersion >= Build.VERSION_CODES.M;
     }
 
-    private PermissionListener listener = new PermissionListener() {
-        public boolean onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
-            if (requestCode == REQUEST_CODE_AUTHORIZATION) {
-                sendEvent(getGpsState());
-            }
+    private PermissionListener listener = (requestCode, permissions, grantResults) -> {
+        Log.i(NAME, "PermissionListener -> "+requestCode+" -> "+REQUEST_CODE_AUTHORIZATION);
 
-            return true;
+        if (requestCode == REQUEST_CODE_AUTHORIZATION) {
+            sendEvent(getGpsState());
         }
+
+        return true;
     };
 
     int getGpsState() {
@@ -190,7 +217,7 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
     }
 
     int getPermission() {
-        return ActivityCompat.checkSelfPermission(getReactApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
+        return ActivityCompat.checkSelfPermission(currentContext, Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     boolean isPermissionGranted() {
@@ -203,11 +230,13 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
     }
 
     void sendEvent(int status) {
-        ReactContext reactContext = getReactApplicationContext();
+        // ReactContext reactContext = getReactApplicationContext();
         WritableMap params = Arguments.createMap();
         params.putInt("status", status);
 
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(EVENT_STATUS_CHANGE, params);
+
+        Log.i(NAME, "Send event ("+EVENT_STATUS_CHANGE+"): "+status);
+        currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(EVENT_STATUS_CHANGE, params);
     }
 
     private final class GPSProvideChangeReceiver extends BroadcastReceiver {
@@ -218,5 +247,10 @@ public class GPSStateModule extends ReactContextBaseJavaModule /*implements Acti
                 sendEvent(getGpsState());
             }
         }
+    }
+
+    @ReactMethod
+    void debugEmitter(){
+      sendEvent(99);
     }
 }
