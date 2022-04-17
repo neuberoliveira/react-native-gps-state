@@ -92,11 +92,13 @@ public class GpsStateModule extends ReactContextBaseJavaModule {
     @ReactMethod
     void startListen() {
         Log.i(NAME, "Android start to listen");
-        // stopListen();
+         // stopListen();
          try {
             mGpsSwitchStateReceiver = new GPSProvideChangeReceiver();
             currentContext.registerReceiver(mGpsSwitchStateReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
             isListen = true;
+
+            sendEvent(getGpsState());
          } catch (Exception ex) {
            Log.e(NAME, "StartListen error: "+ex.getMessage());
            ex.printStackTrace();
@@ -158,16 +160,29 @@ public class GpsStateModule extends ReactContextBaseJavaModule {
             int requestCode = REQUEST_CODE_AUTHORIZATION;
 
             if (activity instanceof ReactActivity) {
+                Log.i(NAME, "requestAuthorization: activity instanceof ReactActivity");
                 ((ReactActivity) activity).requestPermissions(permissions, requestCode, listener);
 
             } else if (activity instanceof PermissionAwareActivity) {
+                Log.i(NAME, "requestAuthorization: activity instanceof PermissionAwareActivity");
                 ((PermissionAwareActivity) activity).requestPermissions(permissions, requestCode, listener);
 
             } else {
+                Log.i(NAME, "requestAuthorization: else");
                 ActivityCompat.requestPermissions(activity, permissions, requestCode);
             }
         }
     }
+
+    private PermissionListener listener = (requestCode, permissions, grantResults) -> {
+      Log.i(NAME, "PermissionListener -> "+requestCode+" -> "+REQUEST_CODE_AUTHORIZATION);
+
+      if (requestCode == REQUEST_CODE_AUTHORIZATION) {
+        sendEvent(getGpsState());
+      }
+
+      return true;
+    };
 
     @ReactMethod
     void isMarshmallowOrAbove(Promise promise) {
@@ -181,16 +196,6 @@ public class GpsStateModule extends ReactContextBaseJavaModule {
     boolean _NativeIsTargetMOrAbove() {
         return targetSdkVersion >= Build.VERSION_CODES.M;
     }
-
-    private PermissionListener listener = (requestCode, permissions, grantResults) -> {
-        Log.i(NAME, "PermissionListener -> "+requestCode+" -> "+REQUEST_CODE_AUTHORIZATION);
-
-        if (requestCode == REQUEST_CODE_AUTHORIZATION) {
-            sendEvent(getGpsState());
-        }
-
-        return true;
-    };
 
     int getGpsState() {
         int status;
@@ -233,7 +238,6 @@ public class GpsStateModule extends ReactContextBaseJavaModule {
         // ReactContext reactContext = getReactApplicationContext();
         WritableMap params = Arguments.createMap();
         params.putInt("status", status);
-
 
         Log.i(NAME, "Send event ("+EVENT_STATUS_CHANGE+"): "+status);
         currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(EVENT_STATUS_CHANGE, params);
