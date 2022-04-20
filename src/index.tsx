@@ -1,5 +1,5 @@
 import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
-import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue';
+// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue';
 
 import type {
   PermissionType,
